@@ -42,6 +42,7 @@ var backgroundImage = new Image();
 var objectsImage = new Image();
 function main() {
     return __awaiter(this, void 0, void 0, function () {
+        var map;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -59,6 +60,9 @@ function main() {
                     return [4, loadImage("background.png")];
                 case 4:
                     objectsImage = _a.sent();
+                    return [4, loadMap("map.json")];
+                case 5:
+                    map = _a.sent();
                     window.addEventListener('resize', resizeCanvas, false);
                     resizeCanvas();
                     update();
@@ -80,6 +84,55 @@ function update() {
         dx += 32;
     }
     window.requestAnimationFrame(update);
+}
+function loadMap(filename) {
+    return __awaiter(this, void 0, void 0, function () {
+        var response, data, _i, _a, layer, layerData, tiles;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0: return [4, fetch("http://localhost:5500/tilemaps/".concat(filename))];
+                case 1:
+                    response = _b.sent();
+                    return [4, response.json()];
+                case 2:
+                    data = _b.sent();
+                    _i = 0, _a = data.layers;
+                    _b.label = 3;
+                case 3:
+                    if (!(_i < _a.length)) return [3, 7];
+                    layer = _a[_i];
+                    console.log(layer.data);
+                    return [4, loadLayer(layer.data)];
+                case 4:
+                    layerData = _b.sent();
+                    return [4, loadTiles(layerData.tiles)];
+                case 5:
+                    tiles = _b.sent();
+                    console.log(tiles);
+                    _b.label = 6;
+                case 6:
+                    _i++;
+                    return [3, 3];
+                case 7: return [2];
+            }
+        });
+    });
+}
+function loadLayer(filename) {
+    return __awaiter(this, void 0, void 0, function () {
+        var response, data;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4, fetch("http://localhost:5500/tilemaps/".concat(filename))];
+                case 1:
+                    response = _a.sent();
+                    return [4, response.json()];
+                case 2:
+                    data = _a.sent();
+                    return [2, data];
+            }
+        });
+    });
 }
 function loadTiles(filename) {
     return __awaiter(this, void 0, void 0, function () {

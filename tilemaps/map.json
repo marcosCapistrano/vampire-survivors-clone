@@ -1,0 +1,13 @@
+{
+    "level": 0,
+    "layers": [
+        {
+            "id": 0,
+            "data": "background.json"
+        },
+        {
+            "id": 1,
+            "data": "objects.json"
+        }
+    ]
+}

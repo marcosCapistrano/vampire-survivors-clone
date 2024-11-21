@@ -19,6 +19,8 @@ async function main() {
     objectsImage = await loadImage("background.png");
     /* --------- */
 
+    let map = await loadMap("map.json");
+
     window.addEventListener('resize', resizeCanvas, false);
     // Draw canvas border for the first time.
     resizeCanvas();
@@ -41,6 +43,26 @@ function update() {
     /* ----------------- */
 
     window.requestAnimationFrame(update);
+}
+
+async function loadMap(filename: string) {
+    const response = await fetch(`http://localhost:5500/tilemaps/${filename}`);
+    const data = await response.json();
+
+    for(let layer of data.layers) {
+        console.log(layer.data);
+        let layerData = await loadLayer(layer.data);
+        let tiles = await loadTiles(layerData.tiles);
+
+        console.log(tiles);
+    }
+}
+
+async function loadLayer(filename: string) {
+    const response = await fetch(`http://localhost:5500/tilemaps/${filename}`);
+    const data = await response.json();
+
+    return data;
 }
 
 async function loadTiles(filename: string): Promise<number[]> {
