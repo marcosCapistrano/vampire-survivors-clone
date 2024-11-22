@@ -1,5 +1,6 @@
 {
     "tiles": "background.csv",
+    "tileset": "background.png",
     "mapping": {
         "18": {"x": 64, "y": 16},
         "44": {"x": 32, "y": 48},

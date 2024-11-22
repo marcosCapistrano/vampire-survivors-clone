@@ -1,25 +1,31 @@
 let canvas: HTMLCanvasElement;
 let ctx: CanvasRenderingContext2D;
 
-let background: number[] = [];
-let objects: number[] = [];
+let map: WorldMap;
 
-let backgroundImage = new Image();
-let objectsImage = new Image();
+interface WorldTile {
+    sourceX: number;
+    sourceY: number;
+    x: number;
+    y: number;
+    hasToDraw: boolean;
+}
+
+interface WorldMapLayer {
+    tileset: HTMLImageElement;
+    tiles: Array<WorldTile>;
+}
+
+interface WorldMap {
+    layers: Array<WorldMapLayer>
+}
 
 async function main() {
     canvas = document.getElementById("canvas") as HTMLCanvasElement;
     ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-    /* LOADS MAP */
-    background = await loadTiles("background.csv");
-    objects = await loadTiles("objects.csv");
 
-    backgroundImage = await loadImage("background.png");
-    objectsImage = await loadImage("background.png");
-    /* --------- */
-
-    let map = await loadMap("map.json");
+    map = await loadMap("map.json");
 
     window.addEventListener('resize', resizeCanvas, false);
     // Draw canvas border for the first time.
@@ -30,15 +36,12 @@ main();
 
 function update() {
     /* desenha o mapa */
-    let dx = 0;
-    let dy = 0;
-    for (let i = 0; i < 2500; i++) {
-        if (i % 50 === 0 && i !== 0) {
-            dx = 0;
-            dy += 32;
+    for (let layer of map.layers) {
+        for (let tile of layer.tiles) {
+            if(tile.hasToDraw) {
+            ctx.drawImage(layer.tileset, tile.sourceX, tile.sourceY, 16, 16, tile.x, tile.y, 16, 16);
+            }
         }
-        ctx.drawImage(backgroundImage, 96, 176, 16, 16, dx, dy, 32, 32);
-        dx += 32;
     }
     /* ----------------- */
 
@@ -49,13 +52,54 @@ async function loadMap(filename: string) {
     const response = await fetch(`http://localhost:5500/tilemaps/${filename}`);
     const data = await response.json();
 
-    for(let layer of data.layers) {
-        console.log(layer.data);
+    let map: WorldMap = {
+        layers: []
+    }
+
+    for (let layer of data.layers) {
+        let mapLayer: WorldMapLayer = {
+            tileset: new Image(),
+            tiles: []
+        };
+
         let layerData = await loadLayer(layer.data);
         let tiles = await loadTiles(layerData.tiles);
 
-        console.log(tiles);
+        let x = 0;
+        let y = 0;
+        for (let i = 0; i < 2450; i++) {
+            const mapping = layerData.mapping[tiles[i].toString()];
+            let hasToDraw;
+            let mappingX = 0;
+            let mappingY = 0;
+            if (mapping) {
+                hasToDraw = true;
+                mappingX = mapping.x;
+                mappingY = mapping.y;
+            } else {
+                hasToDraw = false;
+            }
+
+            mapLayer.tiles.push({
+                sourceX: mappingX,
+                sourceY: mappingY,
+                x,
+                y,
+                hasToDraw: true,
+            })
+
+            x += 16;
+
+            if (i % 49 === 0 && i !== 0) { // NAO ME PERGUNTE PQ TEM Q SER 49 e nao 50
+                y += 16;
+                x = 0;
+            }
+        }
+
+        mapLayer.tileset = await loadImage(layerData.tileset)
+        map.layers.push(mapLayer);
     }
+    return map
 }
 
 async function loadLayer(filename: string) {

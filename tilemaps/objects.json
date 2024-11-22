@@ -1,5 +1,6 @@
 {
     "tiles": "objects.csv",
+    "tileset": "objects.png",
     "mapping": {
         "206": {"x": 224, "y": 96},
         "207": {"x": 240, "y": 96},

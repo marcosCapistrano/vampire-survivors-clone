@@ -36,32 +36,16 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var canvas;
 var ctx;
-var background = [];
-var objects = [];
-var backgroundImage = new Image();
-var objectsImage = new Image();
+var map;
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var map;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     canvas = document.getElementById("canvas");
                     ctx = canvas.getContext("2d");
-                    return [4, loadTiles("background.csv")];
-                case 1:
-                    background = _a.sent();
-                    return [4, loadTiles("objects.csv")];
-                case 2:
-                    objects = _a.sent();
-                    return [4, loadImage("background.png")];
-                case 3:
-                    backgroundImage = _a.sent();
-                    return [4, loadImage("background.png")];
-                case 4:
-                    objectsImage = _a.sent();
                     return [4, loadMap("map.json")];
-                case 5:
+                case 1:
                     map = _a.sent();
                     window.addEventListener('resize', resizeCanvas, false);
                     resizeCanvas();
@@ -73,47 +57,84 @@ function main() {
 }
 main();
 function update() {
-    var dx = 0;
-    var dy = 0;
-    for (var i = 0; i < 2500; i++) {
-        if (i % 50 === 0 && i !== 0) {
-            dx = 0;
-            dy += 32;
+    for (var _i = 0, _a = map.layers; _i < _a.length; _i++) {
+        var layer = _a[_i];
+        for (var _b = 0, _c = layer.tiles; _b < _c.length; _b++) {
+            var tile = _c[_b];
+            if (tile.hasToDraw) {
+                ctx.drawImage(layer.tileset, tile.sourceX, tile.sourceY, 16, 16, tile.x, tile.y, 16, 16);
+            }
         }
-        ctx.drawImage(backgroundImage, 96, 176, 16, 16, dx, dy, 32, 32);
-        dx += 32;
     }
     window.requestAnimationFrame(update);
 }
 function loadMap(filename) {
     return __awaiter(this, void 0, void 0, function () {
-        var response, data, _i, _a, layer, layerData, tiles;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        var response, data, map, _i, _a, layer, mapLayer, layerData, tiles, x, y, i, mapping, hasToDraw, mappingX, mappingY, _b;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
                 case 0: return [4, fetch("http://localhost:5500/tilemaps/".concat(filename))];
                 case 1:
-                    response = _b.sent();
+                    response = _c.sent();
                     return [4, response.json()];
                 case 2:
-                    data = _b.sent();
+                    data = _c.sent();
+                    map = {
+                        layers: []
+                    };
                     _i = 0, _a = data.layers;
-                    _b.label = 3;
+                    _c.label = 3;
                 case 3:
-                    if (!(_i < _a.length)) return [3, 7];
+                    if (!(_i < _a.length)) return [3, 8];
                     layer = _a[_i];
-                    console.log(layer.data);
+                    mapLayer = {
+                        tileset: new Image(),
+                        tiles: []
+                    };
                     return [4, loadLayer(layer.data)];
                 case 4:
-                    layerData = _b.sent();
+                    layerData = _c.sent();
                     return [4, loadTiles(layerData.tiles)];
                 case 5:
-                    tiles = _b.sent();
-                    console.log(tiles);
-                    _b.label = 6;
+                    tiles = _c.sent();
+                    x = 0;
+                    y = 0;
+                    for (i = 0; i < 2450; i++) {
+                        mapping = layerData.mapping[tiles[i].toString()];
+                        hasToDraw = void 0;
+                        mappingX = 0;
+                        mappingY = 0;
+                        if (mapping) {
+                            hasToDraw = true;
+                            mappingX = mapping.x;
+                            mappingY = mapping.y;
+                        }
+                        else {
+                            hasToDraw = false;
+                        }
+                        mapLayer.tiles.push({
+                            sourceX: mappingX,
+                            sourceY: mappingY,
+                            x: x,
+                            y: y,
+                            hasToDraw: true,
+                        });
+                        x += 16;
+                        if (i % 49 === 0 && i !== 0) {
+                            y += 16;
+                            x = 0;
+                        }
+                    }
+                    _b = mapLayer;
+                    return [4, loadImage(layerData.tileset)];
                 case 6:
+                    _b.tileset = _c.sent();
+                    map.layers.push(mapLayer);
+                    _c.label = 7;
+                case 7:
                     _i++;
                     return [3, 3];
-                case 7: return [2];
+                case 8: return [2, map];
             }
         });
     });
